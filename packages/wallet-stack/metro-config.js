@@ -1,9 +1,5 @@
-const { getDefaultConfig: getDefaultConfigExpo } = require('expo/metro-config')
-
-// Wraps Expo's getDefaultConfig to add our customizations
-function getDefaultConfig(...args) {
-  const config = getDefaultConfigExpo(...args)
-
+// Wraps a Metro config (Expo's or Sentry's) with wallet-stack customizations.
+function withWalletStackConfig(config) {
   config.transformer.getTransformOptions = async () => ({
     transform: {
       experimentalImportSupport: false,
@@ -15,6 +11,7 @@ function getDefaultConfig(...args) {
   config.resolver.assetExts = [...config.resolver.assetExts, 'txt']
 
   config.resolver.extraNodeModules = {
+    ...config.resolver.extraNodeModules,
     // This is the crypto module we want to use moving forward (unless something better comes up).
     // It is implemented natively using OpenSSL.
     crypto: require.resolve('react-native-quick-crypto'),
@@ -23,6 +20,7 @@ function getDefaultConfig(...args) {
     buffer: require.resolve('@craftzdog/react-native-buffer'),
   }
 
+  const baseResolveRequest = config.resolver.resolveRequest
   // TODO: remove this once we stop using absolute imports
   config.resolver.resolveRequest = (context, moduleName, platform) => {
     if (moduleName.startsWith('src/')) {
@@ -31,10 +29,10 @@ function getDefaultConfig(...args) {
     if (moduleName === 'locales') {
       return context.resolveRequest(context, 'wallet-stack/locales', platform)
     }
-    return context.resolveRequest(context, moduleName, platform)
+    return (baseResolveRequest ?? context.resolveRequest)(context, moduleName, platform)
   }
 
   return config
 }
 
-module.exports = { getDefaultConfig }
+module.exports = { withWalletStackConfig }
