@@ -7,6 +7,7 @@ package.json
 
 # Ignore Crowdin generated files (often they are written with no final newline)
 locales/*/*.json
+
 # Except for the base lang which is maintained by hand
 !locales/base/*.json
 src/pincode/pin-blocklist-hibpv7-top-25k-with-keyboard-translations.json
