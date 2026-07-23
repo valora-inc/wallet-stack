@@ -42,6 +42,18 @@ export enum TokenPickerOrigin {
 
 export const DEBOUNCE_WAIT_TIME = 200
 
+// Some tokens use typographic characters in their symbol that users are
+// unlikely to type, e.g. Tether's "USD₮". Fold them to their ASCII equivalent
+// so searching "usdt" still matches.
+const TYPOGRAPHIC_TO_ASCII: Array<[RegExp, string]> = [[/₮/g, 't']]
+
+function normalizeForSearch(text: string): string {
+  return TYPOGRAPHIC_TO_ASCII.reduce(
+    (result, [pattern, replacement]) => result.replace(pattern, replacement),
+    text.toLowerCase()
+  )
+}
+
 export type TokenBottomSheetProps = {
   origin: TokenPickerOrigin
   onTokenSelected: (token: TokenBalance, tokenPositionInList: number) => void
@@ -210,7 +222,7 @@ function TokenBottomSheet({
   )
 
   const tokenList = useMemo(() => {
-    const lowercasedSearchTerm = searchTerm.toLowerCase()
+    const normalizedSearchTerm = normalizeForSearch(searchTerm)
 
     return tokens.filter((token) => {
       // Exclude the token if it does not match the active filters
@@ -229,8 +241,8 @@ function TokenBottomSheet({
       if (
         searchTerm &&
         !(
-          token.symbol.toLowerCase().includes(lowercasedSearchTerm) ||
-          token.name.toLowerCase().includes(lowercasedSearchTerm)
+          normalizeForSearch(token.symbol).includes(normalizedSearchTerm) ||
+          normalizeForSearch(token.name).includes(normalizedSearchTerm)
         )
       ) {
         return false
