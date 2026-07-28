@@ -19,8 +19,10 @@ on:
 jobs:
   publish:
     name: ${{ github.ref == 'refs/heads/main' && 'Publish' || 'Publish (dry-run)' }}
-    # Only run if the test workflow succeeded or it's a PR (where we don't want to delay the dry run)
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'pull_request' }}
+    # Only run if the test workflow succeeded or it's a PR (where we don't want to delay the dry run).
+    # PRs from forks are excluded: they don't receive repository secrets, and
+    # semantic-release can't resolve the head branch on this repository.
+    if: ${{ github.event.workflow_run.conclusion == 'success' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
     runs-on: ubuntu-latest
     permissions:
       contents: write # to be able to publish a GitHub release
@@ -34,10 +36,15 @@ jobs:
           # Full git history is needed for release notes
           fetch-depth: 0
       - id: auth
+        # Only needed for the Slack notification on main; skipping it elsewhere
+        # also lets the dry-run work on PRs from forks, which don't get
+        # repository secrets
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.MAINNET_SERVICE_ACCOUNT_KEY }}
       - id: google-secrets
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: google-github-actions/get-secretmanager-secrets@v2
         with:
           secrets: |-

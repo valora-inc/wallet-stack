@@ -249,6 +249,40 @@ describe.each([
     expect(queryByTestId(`TokenBalanceItemTouchable/${mockTestTokenTokenId}`)).toBeNull()
   })
 
+  it('finds tokens with typographic symbols when searching with ASCII characters', () => {
+    // Tether's symbol is "USD₮" (with the tugrik sign), but users type "usdt"
+    const usdtToken: TokenBalance = {
+      balance: new BigNumber('10'),
+      priceUsd: new BigNumber('1'),
+      lastKnownPriceUsd: new BigNumber('1'),
+      symbol: 'USD₮',
+      address: '0x48065fbbe25f71c9282ddf5e1cd6d6a887483d5e',
+      tokenId: 'celo-alfajores:0x48065fbbe25f71c9282ddf5e1cd6d6a887483d5e',
+      networkId: NetworkId['celo-alfajores'],
+      priceFetchedAt: Date.now(),
+      decimals: 6,
+      name: 'Tether USD',
+      imageUrl: '',
+    }
+    const { getByPlaceholderText, getByTestId, queryByTestId } = renderBottomSheet({
+      searchEnabled: true,
+      tokens: [...tokens, usdtToken],
+    })
+    const searchInput = getByPlaceholderText('tokenBottomSheet.searchAssets')
+
+    fireEvent.changeText(searchInput, 'usdt')
+    jest.advanceTimersByTime(DEBOUNCE_WAIT_TIME)
+
+    expect(getByTestId(`TokenBalanceItemTouchable/${usdtToken.tokenId}`)).toBeTruthy()
+    expect(queryByTestId(`TokenBalanceItemTouchable/${mockCeurTokenId}`)).toBeNull()
+
+    // Searching with the typographic character directly still works
+    fireEvent.changeText(searchInput, 'USD₮')
+    jest.advanceTimersByTime(DEBOUNCE_WAIT_TIME)
+
+    expect(getByTestId(`TokenBalanceItemTouchable/${usdtToken.tokenId}`)).toBeTruthy()
+  })
+
   it('renders and applies a filter', () => {
     const { getByText, getAllByTestId } = renderBottomSheet({
       filterChips: [
