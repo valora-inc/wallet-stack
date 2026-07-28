@@ -15,12 +15,16 @@ concurrency:
 jobs:
   android:
     name: Android
+    # Skip on PRs from forks: without repository secrets the funded e2e test
+    # wallets are unavailable and the whole suite fails
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     uses: ./.github/workflows/e2e-android.yml
     with:
       android-api-level: 34
     secrets: inherit
   ios:
     name: iOS
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     uses: ./.github/workflows/e2e-ios.yml
     with:
       ios-version: '15.5'
