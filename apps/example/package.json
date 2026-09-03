@@ -91,7 +91,7 @@
     "@babel/core": "^7.25.2",
     "@config-plugins/detox": "^11.0.0",
     "@expo/config-plugins": "~54.0.4",
-    "@faker-js/faker": "^5.5.3",
+    "@faker-js/faker": "^10.0.0",
     "@mento-protocol/mento-sdk": "^1.0.3",
     "@tsconfig/node-lts": "^22.0.1",
     "@types/fs-extra": "^9.0.13",
